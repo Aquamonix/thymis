@@ -1,6 +1,6 @@
 args@{ ... }:
 let
-  inherit (args) inputs lib;
+  inherit (args) inputs lib pkgs;
   deviceConfig = {
     generic-x86_64 = { ... }: { nixpkgs.hostPlatform = "x86_64-linux"; };
     generic-aarch64 = { ... }: { nixpkgs.hostPlatform = "aarch64-linux"; };
