@@ -1,11 +1,11 @@
 { config, lib, pkgs, inputs, modulesPath, options, ... }:
 let
   cfg = config.thymis.config;
-  use-wifi = cfg.wifi-ssid != "" && (cfg.wifi-password != "" || cfg.wifi-auth != "");
+  use-wifi = cfg.wifi-ssid != ""
+    && (cfg.wifi-password != "" || cfg.wifi-auth != "");
   settingsFormat = pkgs.formats.json { };
-in
 
-{
+in {
   imports = [
     inputs.thymis.inputs.home-manager.nixosModules.default
     "${modulesPath}/profiles/base.nix"
@@ -100,12 +100,24 @@ in
         "${cfg.wifi-ssid}" = {
           psk = lib.mkIf (cfg.wifi-password != "") cfg.wifi-password;
           auth = lib.mkIf (cfg.wifi-auth != "") cfg.wifi-auth;
-          authProtocols = lib.mkIf (cfg.wifi-auth-protocols != [ ]) (map (x: x.protocol) cfg.wifi-auth-protocols);
+          authProtocols = lib.mkIf (cfg.wifi-auth-protocols != [ ])
+            (map (x: x.protocol) cfg.wifi-auth-protocols);
         };
       };
     };
-    boot.supportedFilesystems = lib.mkForce [ "btrfs" "cifs" "f2fs" "jfs" "ntfs" "reiserfs" "vfat" "xfs" "ext4" ];
-    services.getty.greetingLine = ''<<< Welcome to Thymis - NixOS ${config.system.nixos.label} (\m) - \l >>>'';
+    boot.supportedFilesystems = lib.mkForce [
+      "btrfs"
+      "cifs"
+      "f2fs"
+      "jfs"
+      "ntfs"
+      "reiserfs"
+      "vfat"
+      "xfs"
+      "ext4"
+    ];
+    services.getty.greetingLine =
+      "<<< Welcome to Thymis - NixOS ${config.system.nixos.label} (\\m) - \\l >>>";
     services.getty.helpLine = lib.mkForce ''
       This is a Thymis device. You can login as root with the password you set during installation.
     '';
@@ -120,22 +132,18 @@ in
       device = "/swapfile";
       size = 1 * 1024; # 1GB
     }];
-    networking.firewall = {
-      allowedTCPPorts = [ 22 ];
-    };
+    networking.firewall = { allowedTCPPorts = [ 22 ]; };
     thymis.config.agent.enable = lib.mkDefault true;
     systemd.services.thymis-agent = lib.mkIf cfg.agent.enable {
       description = "Thymis agent";
       restartIfChanged = false;
       after = [ "network.target" "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
-      script = "exec ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent";
-      path = [
-        "/run/current-system/sw"
-      ];
-      environment = {
-        CONTROLLER_HOST = cfg.agent.controller-url;
-      };
+      script = "exec ${
+          inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent
+        }/bin/thymis-agent";
+      path = [ "/run/current-system/sw" ];
+      environment = { CONTROLLER_HOST = cfg.agent.controller-url; };
       serviceConfig.Restart = "always";
       serviceConfig.Type = "notify";
       serviceConfig.LimitNOFILE = "infinity";
@@ -144,13 +152,11 @@ in
       description = "Thymis agent - place secrets";
       after = [ "sshd.service" ];
       wantedBy = [ "multi-user.target" ];
-      script = "exec ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets";
-      path = [
-        "/run/current-system/sw"
-      ];
-      environment = {
-        CONTROLLER_HOST = cfg.agent.controller-url;
-      };
+      script = "exec ${
+          inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent
+        }/bin/thymis-agent --just-place-secrets";
+      path = [ "/run/current-system/sw" ];
+      environment = { CONTROLLER_HOST = cfg.agent.controller-url; };
       serviceConfig.Type = "oneshot";
     };
     services.rsyslogd.enable = true;
@@ -158,13 +164,17 @@ in
       include(file="/etc/rsyslog.d/thymis.conf")
     '';
     systemd.services.syslog.after = [ "thymis-agent-place-secrets.service" ];
-    systemd.services.syslog.serviceConfig.ExecReload = "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
+    systemd.services.syslog.serviceConfig.ExecReload =
+      "${pkgs.coreutils}/bin/kill -HUP $MAINPID";
     system.activationScripts.thymis = lib.mkIf (cfg.agent.enable) {
       text = ''
-        CONTROLLER_HOST=${cfg.agent.controller-url} ${inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent}/bin/thymis-agent --just-place-secrets
+        CONTROLLER_HOST=${cfg.agent.controller-url} ${
+          inputs.thymis.packages.${config.nixpkgs.hostPlatform.system}.thymis-agent
+        }/bin/thymis-agent --just-place-secrets
       '';
     };
-    system.activationScripts.users.deps = lib.mkIf (cfg.agent.enable) [ "thymis" ];
+    system.activationScripts.users.deps =
+      lib.mkIf (cfg.agent.enable) [ "thymis" ];
     users.mutableUsers = lib.mkDefault false;
     users.allowNoPasswordLogin = lib.mkDefault true;
 
@@ -194,7 +204,11 @@ in
     services.speechd.enable = lib.mkForce false;
     nixpkgs.overlays = [
       (final: prev: {
-        espeak = prev.espeak.override { mbrolaSupport = false; pcaudiolibSupport = false; sonicSupport = false; };
+        espeak = prev.espeak.override {
+          mbrolaSupport = false;
+          pcaudiolibSupport = false;
+          sonicSupport = false;
+        };
       })
     ];
   };

@@ -1,17 +1,6 @@
-{ callPackage
-, pyproject-nix
-, lib
-, pyproject-build-systems
-, uv2nix
-, git
-, nixpkgs-fmt
-, nix
-, writeShellApplication
-, thymis-frontend
-, openssh
-, python313
-, file
-}:
+{ callPackage, pyproject-nix, lib, pyproject-build-systems, uv2nix, git
+, nixpkgs-fmt, nix, writeShellApplication, thymis-frontend, openssh, python313
+, file }:
 let
   python = python313;
 
@@ -30,28 +19,23 @@ let
 
   pyprojectOverrides = final: prev: {
     http-network-relay = prev.http-network-relay.overrideAttrs (old: {
-      buildInputs = (old.buildInputs or [ ]) ++ final.resolveBuildSystem ({ setuptools = [ ]; });
+      buildInputs = (old.buildInputs or [ ])
+        ++ final.resolveBuildSystem ({ setuptools = [ ]; });
     });
   };
 
   pythonSet =
     # Use base package set from pyproject.nix builders
-    (callPackage pyproject-nix.build.packages {
-      inherit python;
-    }).overrideScope
-      (
-        lib.composeManyExtensions [
-          pyproject-build-systems.overlays.default
-          overlay
-          pyprojectOverrides
-        ]
-      );
+    (callPackage pyproject-nix.build.packages { inherit python; }).overrideScope
+    (lib.composeManyExtensions [
+      pyproject-build-systems.overlays.default
+      overlay
+      pyprojectOverrides
+    ]);
 
-  env = (pythonSet.mkVirtualEnv "thymis-controller-env" workspace.deps.default).overrideAttrs (oldAttrs: {
-    venvIgnoreCollisions = [
-      "bin/fastapi"
-    ];
-  });
+  env = (pythonSet.mkVirtualEnv "thymis-controller-env"
+    workspace.deps.default).overrideAttrs
+    (oldAttrs: { venvIgnoreCollisions = [ "bin/fastapi" ]; });
 
   app = writeShellApplication {
     name = "thymis-controller";
@@ -61,9 +45,10 @@ let
       export UVICORN_PORT="''${UVICORN_PORT:=8000}"
       export PYTHONENV=${env}
       export THYMIS_FRONTEND_BINARY_PATH=${thymis-frontend}/bin/thymis-frontend
-      export THYMIS_ALEMBIC_INI_PATH="''${THYMIS_ALEMBIC_INI_PATH:=${./alembic.ini}}"
+      export THYMIS_ALEMBIC_INI_PATH="''${THYMIS_ALEMBIC_INI_PATH:=${
+        ./alembic.ini
+      }}"
       exec ${env}/bin/uvicorn thymis_controller.main:app "$@"
     '';
   };
-in
-app
+in app

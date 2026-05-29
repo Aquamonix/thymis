@@ -1,18 +1,20 @@
 { config, lib, pkgs, inputs, ... }:
-let
-  cfg = config.services.thymis-controller;
-in
-{
+let cfg = config.services.thymis-controller;
+in {
   options = {
     services.thymis-controller = {
       enable = lib.mkEnableOption "the Thymis controller";
-      system-binfmt-aarch64-enable = lib.mkEnableOption "whether to enable the system binfmt for aarch64" // {
-        default = pkgs.stdenv.targetPlatform.system == "x86_64";
-      };
-      system-binfmt-x86_64-enable = lib.mkEnableOption "whether to enable the system binfmt for x86_64";
-      recommended-nix-gc-settings-enable = lib.mkEnableOption "whether to enable the recommended Nix garbage collection settings" // {
-        default = true;
-      };
+      system-binfmt-aarch64-enable =
+        lib.mkEnableOption "whether to enable the system binfmt for aarch64"
+        // {
+          default = pkgs.stdenv.targetPlatform.system == "x86_64";
+        };
+      system-binfmt-x86_64-enable =
+        lib.mkEnableOption "whether to enable the system binfmt for x86_64";
+      recommended-nix-gc-settings-enable = lib.mkEnableOption
+        "whether to enable the recommended Nix garbage collection settings" // {
+          default = true;
+        };
       project-path = lib.mkOption {
         type = lib.types.str;
         default = "/var/lib/thymis";
@@ -20,7 +22,8 @@ in
       };
       base-url = lib.mkOption {
         type = lib.types.str;
-        description = "Base URL of the controller, how it will be accessed from the outside";
+        description =
+          "Base URL of the controller, how it will be accessed from the outside";
         example = "https://thymis.example.com";
       };
       agent-access-url = lib.mkOption {
@@ -31,7 +34,8 @@ in
       auth-basic = lib.mkOption {
         type = lib.types.bool;
         default = true;
-        description = "Whether to enable authentication using a basic username/password";
+        description =
+          "Whether to enable authentication using a basic username/password";
       };
       auth-basic-username = lib.mkOption {
         type = lib.types.str;
@@ -46,14 +50,17 @@ in
       listen-host = lib.mkOption {
         type = lib.types.str;
         default = "127.0.0.1";
-        description = "Host on which the controller listens for incoming connections";
+        description =
+          "Host on which the controller listens for incoming connections";
       };
       listen-port = lib.mkOption {
         type = lib.types.int;
         default = 8000;
-        description = "Port on which the controller listens for incoming connections";
+        description =
+          "Port on which the controller listens for incoming connections";
       };
-      nginx-vhost-enable = lib.mkEnableOption "whether to enable the Nginx virtual host";
+      nginx-vhost-enable =
+        lib.mkEnableOption "whether to enable the Nginx virtual host";
       nginx-vhost-name = lib.mkOption {
         type = lib.types.str;
         default = "thymis";
@@ -70,12 +77,7 @@ in
       after = [ "network-online.target" ];
       script = "exec ${cfg.package}/bin/thymis-controller";
       serviceConfig.Restart = "always";
-      path = [
-        "/run/current-system/sw"
-        pkgs.git
-        pkgs.nixpkgs-fmt
-        pkgs.file
-      ];
+      path = [ "/run/current-system/sw" pkgs.git pkgs.nixpkgs-fmt pkgs.file ];
       environment = {
         THYMIS_PROJECT_PATH = cfg.project-path;
         THYMIS_BASE_URL = cfg.base-url;
@@ -92,7 +94,8 @@ in
       virtualHosts.${cfg.nginx-vhost-name} = {
         default = true;
         locations."/" = {
-          proxyPass = "http://${cfg.listen-host}:${builtins.toString cfg.listen-port}";
+          proxyPass =
+            "http://${cfg.listen-host}:${builtins.toString cfg.listen-port}";
           recommendedProxySettings = true;
           extraConfig = ''
             proxy_http_version 1.1;
@@ -118,7 +121,8 @@ in
         automatic = true;
       };
     });
-    boot.binfmt.emulatedSystems = (lib.lists.optional cfg.system-binfmt-aarch64-enable "aarch64-linux")
+    boot.binfmt.emulatedSystems =
+      (lib.lists.optional cfg.system-binfmt-aarch64-enable "aarch64-linux")
       ++ (lib.lists.optional cfg.system-binfmt-x86_64-enable "x86_64-linux");
   };
 }
