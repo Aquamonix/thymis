@@ -106,21 +106,21 @@
 		color="alternative"
 		class="whitespace-nowrap gap-2 px-2 py-2"
 		on:click={() => (newConfigModalOpen = true)}
-		disabled={configs.length >= 5}
+		disabled={configs.length >= 10}
 	>
 		<Plus size={20} />
 		{$t('configurations.create-new', {
 			values: {
 				configCount: configs.length,
-				configLimit: 5
+				configLimit: 10
 			}
 		})}
 	</Button>
-	{#if configs.length >= 5}
+	{#if configs.length >= 10}
 		<Tooltip class="z-50 whitespace-pre">
 			{$t('configurations.limit-explain', {
 				values: {
-					configLimit: 5
+					configLimit: 10
 				}
 			})}
 		</Tooltip>
