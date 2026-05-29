@@ -159,7 +159,7 @@ let
         config.system.build.thymis-image-with-secrets-builder;
       system.build.thymis-image-with-secrets-builder-x86_64 =
         config.system.build.thymis-image-with-secrets-builder;
-      key = "github:thymis-io/thymis/image-formats.nix:qcow";
+      key = "github:Aquamonix/thymis/image-formats.nix:qcow";
     };
     sd-card-image = { config, pkgs, modulesPath, extendModules, ... }:
       let
@@ -285,7 +285,7 @@ let
               ];
             }).config.system.build.sdImage;
           };
-        key = "github:thymis-io/thymis/image-formats.nix:sd-card-image";
+        key = "github:Aquamonix/thymis/image-formats.nix:sd-card-image";
       };
     nixos-vm = { config, inputs, pkgs, modulesPath, extendModules, ... }:
       let
@@ -358,7 +358,7 @@ let
           start-vm =
             "${variant.config.system.build.vm}/bin/run-${config.system.name}-vm";
         };
-        key = "github:thymis-io/thymis/image-formats.nix:nixos-vm";
+        key = "github:Aquamonix/thymis/image-formats.nix:nixos-vm";
       };
     usb-stick-installer =
       { config, inputs, pkgs, extendModules, modulesPath, ... }:
@@ -497,7 +497,7 @@ let
             pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
             image-path = variant.config.system.build.isoImage;
           };
-        key = "github:thymis-io/thymis/image-formats.nix:usb-stick-installer";
+        key = "github:Aquamonix/thymis/image-formats.nix:usb-stick-installer";
       };
   };
 in imageFormats

@@ -58,48 +58,48 @@ def test_git_flake_reference():
     assert ref.ref is None
     assert ref.rev is None
 
-    ref = parse_flake_reference("git+https://github.com/Thymis-io/thymis?ref=master")
+    ref = parse_flake_reference("git+https://github.com/Aquamonix/thymis?ref=master")
     assert isinstance(ref, GitFlakeReference)
     assert ref.type == "git"
     assert ref.protocol == "https"
     assert ref.url == "github.com/Thymis-io/thymis?ref=master"
     assert ref.host == "github.com"
-    assert ref.owner == "Thymis-io"
+    assert ref.owner == "Aquamonix"
     assert ref.repo == "thymis"
     assert ref.ref == "master"
     assert ref.rev is None
 
     ref = parse_flake_reference(
-        "git+https://github.com/Thymis-io/thymis.git?ref=master"
+        "git+https://github.com/Aquamonix/thymis.git?ref=master"
     )
     assert isinstance(ref, GitFlakeReference)
     assert ref.type == "git"
     assert ref.protocol == "https"
-    assert ref.url == "github.com/Thymis-io/thymis.git?ref=master"
+    assert ref.url == "github.com/Aquamonix/thymis.git?ref=master"
     assert ref.host == "github.com"
-    assert ref.owner == "Thymis-io"
+    assert ref.owner == "Aquamonix"
     assert ref.repo == "thymis"
     assert ref.ref == "master"
     assert ref.rev is None
 
     ref = parse_flake_reference(
-        "git+https://github.com/Thymis-io/thymis.git?ref=feat/new-feature"
+        "git+https://github.com/Aquamonix/thymis.git?ref=feat/new-feature"
     )
     assert isinstance(ref, GitFlakeReference)
     assert ref.type == "git"
     assert ref.protocol == "https"
-    assert ref.url == "github.com/Thymis-io/thymis.git?ref=feat/new-feature"
+    assert ref.url == "github.com/Aquamonix/thymis.git?ref=feat/new-feature"
     assert ref.host == "github.com"
-    assert ref.owner == "Thymis-io"
+    assert ref.owner == "Aquamonix"
     assert ref.repo == "thymis"
     assert ref.ref == "feat/new-feature"
     assert ref.rev is None
 
-    ref = parse_flake_reference("git+https://github.com/Thymis-io/thymis.git")
+    ref = parse_flake_reference("git+https://github.com/Aquamonix/thymis.git")
     assert isinstance(ref, GitFlakeReference)
     assert ref.type == "git"
     assert ref.protocol == "https"
-    assert ref.url == "github.com/Thymis-io/thymis.git"
+    assert ref.url == "github.com/Aquamonix/thymis.git"
     assert ref.host == "github.com"
     assert ref.owner == "Thymis-io"
     assert ref.repo == "thymis"

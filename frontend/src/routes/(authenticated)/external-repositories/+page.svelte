@@ -58,7 +58,7 @@
 		data.globalState.repositories = {
 			...data.globalState.repositories,
 			[key]: {
-				url: 'git+https://github.com/Thymis-io/thymis.git',
+				url: 'git+https://github.com/Aquamonix/thymis.git',
 				api_key_secret: null
 			}
 		};

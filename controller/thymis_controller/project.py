@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 import sqlalchemy
 import sqlalchemy.orm
 from pyrage import decrypt, encrypt, passphrase, ssh
+
 from thymis_controller import crud, db_models, migration, models
 from thymis_controller.config import global_settings
 from thymis_controller.models.external_repo import ExternalRepoStatus
@@ -43,7 +44,7 @@ if "THYMIS_FLAKE_ROOT" in os.environ:
         url=f"git+file://{pathlib.Path(os.environ['THYMIS_FLAKE_ROOT']).resolve()}"
     )
 else:
-    thymis_repo = models.Repo(url="github:thymis-io/thymis/v0.8")
+    thymis_repo = models.Repo(url="github:Aquamonix/thymis/master")
 
 
 BUILTIN_REPOSITORIES = {
@@ -77,9 +78,7 @@ def get_module_class_instance_by_type(module_type: str) -> "modules.Module":
         # return an instance of the class
         return cls()
     except Exception as e:
-        raise Exception(
-            f"Error while importing module {module_type}: {e}"
-        ) from e  # pylint: disable=broad-exception-raised
+        raise Exception(f"Error while importing module {module_type}: {e}") from e  # pylint: disable=broad-exception-raised
 
 
 class Project:
