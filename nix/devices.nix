@@ -80,8 +80,6 @@ let
         raspberry-pi-5.page-size-16k
         raspberry-pi-5.display-vc4
         trusted-nix-caches
-        nixos-raspberrypi.lib.inject-overlays
-        nixos-raspberrypi.lib.inject-overlays-global
       ];
       systemd.watchdog.runtimeTime = "15s";
       # raspberry-pi-nix.libcamera-overlay.enable = false;
