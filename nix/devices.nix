@@ -73,10 +73,19 @@ let
     raspberry-pi-5 = { pkgs, modulesPath, ... }: {
       disabledModules =
         [ "${modulesPath}/installer/sd-card/sd-image-aarch64.nix" ];
-      imports = [ inputs.raspberry-pi-nix.nixosModules.raspberry-pi ];
+      # imports = [ inputs.raspberry-pi-nix.nixosModules.raspberry-pi ];
+      imports = with inputs.nixos-raspberrypi.nixosModules; [
+        # Hardware configuration
+        raspberry-pi-5.base
+        raspberry-pi-5.page-size-16k
+        raspberry-pi-5.display-vc4
+        trusted-nix-caches
+        nixos-raspberrypi.lib.inject-overlays
+        nixos-raspberrypi.lib.inject-overlays-global
+      ];
       systemd.watchdog.runtimeTime = "15s";
-      raspberry-pi-nix.libcamera-overlay.enable = false;
-      raspberry-pi-nix.board = "bcm2712";
+      # raspberry-pi-nix.libcamera-overlay.enable = false;
+      # raspberry-pi-nix.board = "bcm2712";
       boot.kernel.sysctl."vm.mmap_rnd_bits" = 24;
       nixpkgs.overlays = [
         (final: prev: {

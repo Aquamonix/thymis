@@ -9,6 +9,7 @@
     nixos-generators.inputs.nixpkgs.follows = "nixpkgs";
     nixos-hardware.url = "github:NixOS/nixos-hardware";
     raspberry-pi-nix.url = "github:nix-community/raspberry-pi-nix";
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
     flake-utils.url = "github:numtide/flake-utils";
     pyproject-nix = {
       url = "github:pyproject-nix/pyproject.nix";
@@ -30,50 +31,45 @@
   };
 
   nixConfig = {
-    extra-substituters = [
-      "https://cache.thymis.io"
-    ];
-    extra-trusted-public-keys = [
-      "cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M="
-    ];
+    extra-substituters = [ "https://cache.thymis.io" ];
+    extra-trusted-public-keys =
+      [ "cache.thymis.io-1:pEeKkNXiK17TLKls0KM8cEp0NGy08gc5chAmCyuQo8M=" ];
   };
 
   outputs = inputss@{ self, nixpkgs, home-manager, flake-utils, ... }:
     let
-      inputs = inputss // {
-        thymis = self;
-      };
+      inputs = inputss // { thymis = self; };
       forAllSystems = nixpkgs.lib.genAttrs [ "x86_64-linux" "aarch64-linux" ];
       nixosModules = {
         thymis-device = ./nix/thymis-device-nixos-module.nix;
         thymis-controller = {
-          imports = [
-            ./nix/thymis-controller-nixos-module.nix
-          ];
+          imports = [ ./nix/thymis-controller-nixos-module.nix ];
           nixpkgs.overlays = [
             (final: prev: {
-              thymis-controller = self.packages.${final.stdenv.system}.thymis-controller;
+              thymis-controller =
+                self.packages.${final.stdenv.system}.thymis-controller;
             })
           ];
         };
-      } // (nixpkgs.lib.mapAttrs'
-        (name: value: {
-          name = "thymis-device-${name}";
-          value = value;
-        })
-        (import ./nix/devices.nix { inherit inputs; lib = nixpkgs.lib; })
-      ) // (nixpkgs.lib.mapAttrs'
-        (name: value: {
-          name = "thymis-image-${name}";
-          value = value;
-        })
-        (import ./nix/image-formats.nix { inherit inputs; lib = nixpkgs.lib; })
-      );
+      } // (nixpkgs.lib.mapAttrs' (name: value: {
+        name = "thymis-device-${name}";
+        value = value;
+      }) (import ./nix/devices.nix {
+        inherit inputs;
+        lib = nixpkgs.lib;
+      })) // (nixpkgs.lib.mapAttrs' (name: value: {
+        name = "thymis-image-${name}";
+        value = value;
+      }) (import ./nix/image-formats.nix {
+        inherit inputs;
+        lib = nixpkgs.lib;
+      }));
 
       activate-thymis-controller-module = {
         services.thymis-controller.enable = true;
         services.thymis-controller.base-url = "https://thymis.example.com";
-        services.thymis-controller.agent-access-url = "https://thymis.example.com";
+        services.thymis-controller.agent-access-url =
+          "https://thymis.example.com";
         system.stateVersion = "25.11";
       };
 
@@ -85,9 +81,7 @@
           nixosModules.thymis-controller
           activate-thymis-controller-module
         ];
-        specialArgs = {
-          inherit inputs;
-        };
+        specialArgs = { inherit inputs; };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
       thymis-controller-pi-4-sd-image = (nixpkgs.lib.nixosSystem {
@@ -98,22 +92,29 @@
           nixosModules.thymis-controller
           activate-thymis-controller-module
         ];
-        specialArgs = {
-          inherit inputs;
-        };
+        specialArgs = { inherit inputs; };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
       thymis-controller-pi-5-sd-image = (nixpkgs.lib.nixosSystem {
         modules = [
+          ({ config, pkgs, lib, nixos-raspberrypi, ... }: {
+            imports = with nixos-raspberrypi.nixosModules; [
+              # Hardware configuration
+              raspberry-pi-5.base
+              raspberry-pi-5.page-size-16k
+              raspberry-pi-5.display-vc4
+              trusted-nix-caches
+              nixos-raspberrypi.lib.inject-overlays
+              nixos-raspberrypi.lib.inject-overlays-global
+            ];
+          })
           nixosModules.thymis-device
           nixosModules."thymis-device-raspberry-pi-5"
           nixosModules."thymis-image-sd-card-image"
           nixosModules.thymis-controller
           activate-thymis-controller-module
         ];
-        specialArgs = {
-          inherit inputs;
-        };
+        specialArgs = { inherit inputs; };
       }).config.system.build.thymis-image-with-secrets-builder-aarch64;
 
       thymis-controller-generic-x86_64-image = (nixpkgs.lib.nixosSystem {
@@ -124,20 +125,16 @@
           nixosModules.thymis-controller
           activate-thymis-controller-module
         ];
-        specialArgs = {
-          inherit inputs;
-        };
+        specialArgs = { inherit inputs; };
       }).config.system.build.thymis-image-with-secrets-builder-x86_64;
 
-    in
-    {
+    in {
       inputs = inputs;
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
+      formatter =
+        forAllSystems (system: nixpkgs.legacyPackages.${system}.nixpkgs-fmt);
       devShells = forAllSystems (system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-        in
-        {
+        let pkgs = nixpkgs.legacyPackages.${system};
+        in {
           default = pkgs.mkShell {
             packages = [
               pkgs.uv
@@ -193,30 +190,24 @@
             git-rev = inputs.self.rev or inputs.self.dirtyRev or null;
           };
           thymis-controller = pkgs.callPackage ./controller {
-            inherit (inputs)
-              pyproject-build-systems
-              pyproject-nix
-              uv2nix;
+            inherit (inputs) pyproject-build-systems pyproject-nix uv2nix;
             thymis-frontend = thymis-frontend;
           };
           thymis-agent = pkgs.callPackage ./agent {
-            inherit (inputs)
-              pyproject-build-systems
-              pyproject-nix
-              uv2nix;
+            inherit (inputs) pyproject-build-systems pyproject-nix uv2nix;
           };
-        in
-        {
+        in {
           thymis-frontend = thymis-frontend;
           thymis-controller = thymis-controller;
           thymis-agent = thymis-agent;
-          thymis-controller-container = import ./nix/docker.nix { inherit pkgs thymis-controller; };
-        }
-      );
+          thymis-controller-container =
+            import ./nix/docker.nix { inherit pkgs thymis-controller; };
+        });
       nixosModules = nixosModules;
       thymis-controller-pi-3-sd-image = thymis-controller-pi-3-sd-image;
       thymis-controller-pi-4-sd-image = thymis-controller-pi-4-sd-image;
       thymis-controller-pi-5-sd-image = thymis-controller-pi-5-sd-image;
-      thymis-controller-generic-x86_64-image = thymis-controller-generic-x86_64-image;
+      thymis-controller-generic-x86_64-image =
+        thymis-controller-generic-x86_64-image;
     };
 }
